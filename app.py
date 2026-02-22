@@ -60,15 +60,15 @@ def generate_pdf(data):
     pdf.add_page()
     
     # Подключаем кириллицу (шрифт должен лежать в папке src)
-    pdf.add_font('ArialCustom', '', 'arial.ttf', uni=True)
+    pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)
     
     # Заголовок
     # Заголовок
-    pdf.set_font("ArialCustom", "", 16)
+    pdf.set_font("DejaVu", "", 16)
     pdf.cell(0, 10, "Умный бизнес-отчет / Smart Business Report", ln=True, align="C")
 
     # Базовые метрики
-    pdf.set_font("ArialCustom", "", 12)
+    pdf.set_font("DejaVu", "", 12)
     total_records = len(data)
     total_amount = data['Amount'].sum() if 'Amount' in data.columns else 0
     pdf.cell(0, 10, f"Всего транзакций (Total Transactions): {total_records}", ln=True)
@@ -76,9 +76,9 @@ def generate_pdf(data):
     pdf.ln(10)
 
     # --- УМНЫЙ ТЕКСТОВЫЙ АНАЛИЗ (Двуязычный) ---
-    pdf.set_font("ArialCustom", "", 12)
+    pdf.set_font("DejaVu", "", 12)
     pdf.cell(0, 10, "AI Инсайт по продажам (Sales Insight):", ln=True)
-    pdf.set_font("ArialCustom", "", 11)
+    pdf.set_font("DejaVu", "", 12)
 
     if 'Category' in data.columns and 'Amount' in data.columns:
         # Находим топ-товар и его долю
@@ -159,6 +159,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     )
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
