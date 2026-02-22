@@ -122,7 +122,7 @@ def generate_pdf(data):
         ax_line.plot(trend_data['Date'], trend_data['Amount'], color='tab:blue')
         ax_line.set_title("Revenue Trend")
         
-        ,plt.figure(figsize=(10, 5))
+        plt.figure(figsize=(10, 5))
         # ... твой код рисования графиков (plt.plot) ...
         plt.savefig("temp_line.png", format='png', bbox_inches='tight')
         plt.close() # Важно закрыть график
@@ -160,6 +160,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     )
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
