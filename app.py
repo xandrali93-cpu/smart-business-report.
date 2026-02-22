@@ -116,36 +116,61 @@ def generate_pdf(data):
     # ---------------------------------------------------
 
     # График 1: Тренды
-   
-        
+   def generate_pdf(data):
+    pdf = FPDF()
+    pdf.add_page()
+
+    # 1. Подключаем кириллицу (используем DejaVuSans, который ты загрузил)
+    pdf.add_font('DejaVu', '', 'DejaVuSans.ttf')
+    pdf.set_font('DejaVu', '', 16)
+    
+    # Заголовок
+    pdf.cell(0, 10, "Умный бизнес-отчет / Smart Business Report", ln=True, align="C")
+    pdf.ln(10)
+
+    # 2. Базовые метрики
+    pdf.set_font("DejaVu", "", 12)
+    total_records = len(data)
+    total_amount = data['Amount'].sum() if 'Amount' in data.columns else 0
+    
+    pdf.cell(0, 10, f"Всего транзакций (Total Transactions): {total_records}", ln=True)
+    pdf.cell(0, 10, f"Общая выручка (Total Revenue): {total_amount:,.2f} ₸", ln=True)
+    pdf.ln(10)
+
+    # 3. График 1: Тренды (Линейный)
     if 'Date' in data.columns and 'Amount' in data.columns:
         trend_data = data.groupby('Date')['Amount'].sum().reset_index()
+        
         plt.figure(figsize=(10, 5))
         plt.plot(trend_data['Date'], trend_data['Amount'], marker='o', color='tab:blue')
+        plt.title("Revenue Trend")
+        plt.grid(True)
         plt.savefig("temp_line.png", format='png', bbox_inches='tight')
-        plt.close() # Чистим память
+        plt.close() # Важно: закрываем график сразу после сохранения
+        
         pdf.image("temp_line.png", x=10, y=pdf.get_y(), w=180)
         pdf.ln(10)
 
-    # График 2: Категории
+    # 4. График 2: Категории (Круговая диаграмма)
     if 'Category' in data.columns and 'Amount' in data.columns:
         pie_data = data.groupby('Category')['Amount'].sum()
-        fig_pie, ax_pie = plt.subplots(figsize=(6, 6))
-        ax_pie.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%')
-        ax_pie.set_title("Revenue by Category")
         
-        # --- Круговая диаграмма ---
-    if 'Category' in data.columns and 'Amount' in data.columns:
         plt.figure(figsize=(8, 8))
-        plt.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%')
+        plt.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=140)
+        plt.title("Revenue by Category")
         plt.savefig("temp_pie.png", format='png', bbox_inches='tight')
-        plt.close() # Чистим память
-        pdf.image("temp_pie.png", x=10, y=pdf.get_y(), w=150)
-    if pdf.get_y() > 200:
+        plt.close() # Очищаем холст, чтобы графики не накладывались
+        
+        # Если места на странице мало — переходим на новую
+        if pdf.get_y() > 180:
             pdf.add_page()
-            plt.close('all')
+            
+        pdf.image("temp_pie.png", x=10, y=pdf.get_y(), w=150)
 
+    plt.close('all') # Финальная зачистка памяти
     return pdf.output()
+        
+   
 # === 6. КНОПКА СКАЧИВАНИЯ ===
 st.markdown("---")
 if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
@@ -160,6 +185,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
