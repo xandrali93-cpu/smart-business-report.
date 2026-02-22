@@ -123,8 +123,8 @@ def generate_pdf(data):
         ax_line.set_title("Revenue Trend")
         
         buf_line = io.BytesIO()
-        plt.savefig(buf_line, format='png', bbox_inches='tight')
-        buf_line.name = "line_chart.png"  # <--- ДОБАВЬ ЭТУ СТРОЧКУ (даем "имя" буферу)
+        plt.savefig("temp_line.png", format='png', bbox_inches='tight') # Сохраняем как реальный файл
+        pdf.image("temp_line.png", x=10, y=pdf.get_y(), w=190)
         buf_line.seek(0)
         pdf.image(buf_line, x=10, y=pdf.get_y(), w=190)
 
@@ -136,8 +136,8 @@ def generate_pdf(data):
         ax_pie.set_title("Revenue by Category")
         
         buf_pie = io.BytesIO()
-        plt.savefig(buf_pie, format='png', bbox_inches='tight')
-        buf_pie.name = "pie_chart.png"   # <--- ДОБАВЬ ЭТУ СТРОЧКУ
+        plt.savefig("temp_pie.png", format='png', bbox_inches='tight')  # Сохраняем второй файл
+        pdf.image("temp_pie.png", x=10, y=pdf.get_y(), w=190)
         buf_pie.seek(0)
         pdf.image(buf_pie, x=10, y=pdf.get_y(), w=190)
         
@@ -159,6 +159,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     )
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
