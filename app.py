@@ -116,7 +116,7 @@ def generate_pdf(data):
     # ---------------------------------------------------
 
     # График 1: Тренды
-   def generate_pdf(data):
+def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
 
@@ -185,6 +185,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
