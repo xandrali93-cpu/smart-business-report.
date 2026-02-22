@@ -118,7 +118,7 @@ def generate_pdf(data):
     # График 1: Тренды
    
         
-     if 'Date' in data.columns and 'Amount' in data.columns:
+    if 'Date' in data.columns and 'Amount' in data.columns:
         plt.figure(figsize=(10, 5))
         plt.plot(trend_data['Date'], trend_data['Amount'], marker='o', color='tab:blue')
         plt.savefig("temp_line.png", format='png', bbox_inches='tight')
@@ -147,7 +147,7 @@ def generate_pdf(data):
     return pdf.output()
 # === 6. КНОПКА СКАЧИВАНИЯ ===
 st.markdown("---")
-if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
+    if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     pdf_bytes = generate_pdf(df)
     # Оборачиваем вызов функции в bytes() прямо здесь
     st.download_button(
@@ -159,6 +159,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
