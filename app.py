@@ -119,6 +119,7 @@ def generate_pdf(data):
    
         
     if 'Date' in data.columns and 'Amount' in data.columns:
+        trend_data = data.groupby('Date')['Amount'].sum().reset_index()
         plt.figure(figsize=(10, 5))
         plt.plot(trend_data['Date'], trend_data['Amount'], marker='o', color='tab:blue')
         plt.savefig("temp_line.png", format='png', bbox_inches='tight')
@@ -159,6 +160,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
