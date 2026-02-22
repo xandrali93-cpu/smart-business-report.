@@ -158,9 +158,10 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
        file_name="Business_Report.pdf",
        mime="application/pdf"
     )
-    )
+    
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
