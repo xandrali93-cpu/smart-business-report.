@@ -144,8 +144,7 @@ def generate_pdf(data):
         
         if pdf.get_y() > 200:
             pdf.add_page()
-        pdf.image(buf_pie, x=10, y=pdf.get_y(), w=190, format='PNG')
-        plt.close(fig_pie)
+        plt.close('all')
 
     return bytes(pdf.output())
 # === 6. КНОПКА СКАЧИВАНИЯ ===
@@ -160,6 +159,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     )
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
