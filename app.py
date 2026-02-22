@@ -147,7 +147,7 @@ def generate_pdf(data):
     return pdf.output()
 # === 6. КНОПКА СКАЧИВАНИЯ ===
 st.markdown("---")
-    if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
+if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     pdf_bytes = generate_pdf(df)
     # Оборачиваем вызов функции в bytes() прямо здесь
     st.download_button(
@@ -159,6 +159,7 @@ st.markdown("---")
     
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
