@@ -146,7 +146,7 @@ def generate_pdf(data):
             pdf.add_page()
         plt.close('all')
 
-   return pdf.output()
+    return pdf.output()
 # === 6. КНОПКА СКАЧИВАНИЯ ===
 st.markdown("---")
 if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
@@ -159,6 +159,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     )
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
