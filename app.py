@@ -60,7 +60,7 @@ def generate_pdf(data):
     pdf.add_page()
     
     # Подключаем кириллицу (шрифт должен лежать в папке src)
-    pdf.add_font('ArialCustom', '', 'src/arial.ttf', uni=True)
+    pdf.add_font('ArialCustom', '', 'arial.ttf', uni=True)
     
     # Заголовок
     # Заголовок
@@ -158,3 +158,4 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     )
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
