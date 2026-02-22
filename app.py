@@ -122,11 +122,13 @@ def generate_pdf(data):
         ax_line.plot(trend_data['Date'], trend_data['Amount'], color='tab:blue')
         ax_line.set_title("Revenue Trend")
         
+        if 'Date' in data.columns and 'Amount' in data.columns:
         plt.figure(figsize=(10, 5))
-        # ... твой код рисования графиков (plt.plot) ...
+        plt.plot(trend_data['Date'], trend_data['Amount'], marker='o', color='tab:blue')
         plt.savefig("temp_line.png", format='png', bbox_inches='tight')
-        plt.close() # Важно закрыть график
-        pdf.image("temp_line.png", x=10, y=pdf.get_y(), w=190)
+        plt.close() # Чистим память
+        pdf.image("temp_line.png", x=10, y=pdf.get_y(), w=180)
+        pdf.ln(10)
 
     # График 2: Категории
     if 'Category' in data.columns and 'Amount' in data.columns:
@@ -136,12 +138,12 @@ def generate_pdf(data):
         ax_pie.set_title("Revenue by Category")
         
         # --- Круговая диаграмма ---
-        plt.figure(figsize=(10, 5))
-        # ... твой код рисования (plt.pie) ...
+        if 'Category' in data.columns and 'Amount' in data.columns:
+        plt.figure(figsize=(8, 8))
+        plt.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%')
         plt.savefig("temp_pie.png", format='png', bbox_inches='tight')
-        plt.close()
-        pdf.image("temp_pie.png", x=10, y=pdf.get_y(), w=190)
-        
+        plt.close() # Чистим память
+        pdf.image("temp_pie.png", x=10, y=pdf.get_y(), w=150)
         if pdf.get_y() > 200:
             pdf.add_page()
         plt.close('all')
@@ -161,6 +163,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
