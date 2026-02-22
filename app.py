@@ -151,14 +151,17 @@ def generate_pdf(data):
 st.markdown("---")
 if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     pdf_bytes = generate_pdf(df)
+    # Оборачиваем вызов функции в bytes() прямо здесь
     st.download_button(
-        label="🚀 Сгенерировать и скачать PDF Отчет",
-        data=pdf_bytes,
-        file_name="AI_Business_Report.pdf",
-        mime="application/pdf"
+       label="🚀 Сгенерировать и скачать PDF Отчет",
+       data=bytes(generate_pdf(df)),  # <--- Добавь bytes() здесь
+       file_name="Business_Report.pdf",
+       mime="application/pdf"
+    )
     )
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
