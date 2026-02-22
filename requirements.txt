@@ -1,9 +1,6 @@
-pandas
-openpyxl
-plotly
 streamlit
-numpy
-fpdf2
+pandas
 matplotlib
-seaborn
-altair
+fpdf
+openpyxl
+altair==4.2.2
