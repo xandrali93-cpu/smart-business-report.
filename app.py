@@ -125,7 +125,7 @@ def generate_pdf(data):
         buf_line = io.BytesIO()
         fig_line.savefig(buf_line, format="png", bbox_inches="tight")
         buf_line.seek(0)
-        pdf.image(buf_line, x=10, y=pdf.get_y(), w=190)
+        pdf.image(buf_line, x=10, y=pdf.get_y(), w=190, format='PNG')
         plt.close(fig_line)
         pdf.ln(90)
 
@@ -142,7 +142,7 @@ def generate_pdf(data):
         
         if pdf.get_y() > 200:
             pdf.add_page()
-        pdf.image(buf_pie, x=50, y=pdf.get_y(), w=110)
+        pdf.image(buf_pie, x=10, y=pdf.get_y(), w=190, format='PNG')
         plt.close(fig_pie)
 
     return bytes(pdf.output())
@@ -158,6 +158,7 @@ if 'Date' in df.columns and 'Amount' in df.columns and 'Category' in df.columns:
     )
 else:
     st.warning("⚠️ Для создания отчета в файле должны быть колонки с датой, суммой и названием товаров.")
+
 
 
 
