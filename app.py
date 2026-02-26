@@ -3,9 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 from fpdf import FPDF
-import os
 
-# Отключаем интерактивный режим (чтобы графики рисовались только в фоне)
+# Отключаем интерактивный режим Matplotlib (графики рисуются только в фоне)
 matplotlib.use('Agg')
 
 # === 1. НАСТРОЙКА ИНТЕРФЕЙСА ===
@@ -21,7 +20,7 @@ if not uploaded_file:
     st.info("👋 Привет! Загрузи свой отчет по продажам (Excel или CSV), и я мгновенно сделаю PDF-аналитику.")
     st.stop()
 
-# === 3. ЧТЕНИЕ ФАЙЛА И УМНЫЙ ПОИСК КОЛОНОК ===
+# === 3. ЧТЕНИЕ ФАЙЛА ===
 try:
     if uploaded_file.name.endswith('.csv'):
         df = pd.read_csv(uploaded_file)
@@ -31,32 +30,40 @@ except Exception as e:
     st.error(f"Ошибка при чтении файла: {e}")
     st.stop()
 
+# === 4. УМНЫЙ ПОИСК КОЛОНОК (SUPERSTORE READY) ===
 mapping = {}
 for col in df.columns:
     col_lower = str(col).lower().strip()
-    if any(kw in col_lower for kw in ['сумма', 'цена', 'итого', 'total', 'выручка', 'amount', 'оплате']):
+    
+    # Ищем деньги (берем первую подходящую колонку)
+    if 'Amount' not in mapping.values() and any(kw in col_lower for kw in ['sales', 'profit', 'сумма', 'цена', 'итого', 'total', 'выручка', 'amount', 'оплате', 'продажи', 'прибыль']):
         mapping[col] = 'Amount'
-    elif any(kw in col_lower for kw in ['дата', 'date', 'время', 'период']):
+        
+    # Ищем даты
+    elif 'Date' not in mapping.values() and any(kw in col_lower for kw in ['order date', 'дата', 'date', 'время', 'период']):
         mapping[col] = 'Date'
-    elif any(kw in col_lower for kw in ['категория', 'товар', 'item', 'название', 'category']):
+        
+    # Ищем категории/товары
+    elif 'Category' not in mapping.values() and any(kw in col_lower for kw in ['category', 'sub-category', 'product', 'категория', 'подкатегория', 'товар', 'item', 'название', 'сегмент', 'номенклатура']):
         mapping[col] = 'Category'
 
 df = df.rename(columns=mapping)
 
+# Приводим дату к нужному формату, если она найдена
 if 'Date' in df.columns:
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
 
-# === 4. ОТОБРАЖЕНИЕ ДАННЫХ ===
+# === 5. ОТОБРАЖЕНИЕ ДАННЫХ (ПРЕВЬЮ) ===
 st.success("✅ Данные успешно загружены и распознаны!")
 st.write("Вот как программа увидела твой файл (первые 5 строк):")
 st.dataframe(df.head())
 
-# === 5. ГЕНЕРАТОР PDF (С ЖЕЛЕЗНЫМ ОТСТУПОМ) ===
+# === 6. ГЕНЕРАТОР PDF ===
 def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
     
-    # Подключаем кириллицу
+    # Подключаем кириллицу (убедись, что DejaVuSans.ttf на месте)
     pdf.add_font('DejaVu', '', 'DejaVuSans.ttf')
     
     # Заголовок
@@ -83,7 +90,7 @@ def generate_pdf(data):
         top_percentage = (top_amount / total_amount) * 100 if total_amount > 0 else 0
 
         insight_ru = (
-            f"Анализ показывает, что «{top_category}» — главный драйвер продаж. "
+            f"🇷🇺 Анализ показывает, что «{top_category}» — главный драйвер продаж. "
             f"Этот товар принес {top_amount:,.2f} ₸ ({top_percentage:.1f}% от всей выручки). "
         )
         if top_percentage > 50:
@@ -92,7 +99,7 @@ def generate_pdf(data):
             insight_ru += "Отличная работа: Продажи хорошо сбалансированы. Продолжай в том же духе."
 
         insight_en = (
-            f"Analysis shows that '{top_category}' is your main sales driver, "
+            f"🇬🇧 Analysis shows that '{top_category}' is your main sales driver, "
             f"generating {top_amount:,.2f} ₸ ({top_percentage:.1f}% of total revenue). "
         )
         if top_percentage > 50:
@@ -102,13 +109,12 @@ def generate_pdf(data):
 
         final_insight = insight_ru + "\n\n" + insight_en
         pdf.multi_cell(0, 7, final_insight)
-        pdf.ln(10) 
+        pdf.ln(10)
 
     # --- ГРАФИК 1: ТРЕНДЫ ---
     if 'Date' in data.columns and 'Amount' in data.columns:
         trend_data = data.groupby('Date')['Amount'].sum().reset_index()
         
-        # Строгая изоляция графика
         fig1, ax1 = plt.subplots(figsize=(10, 5))
         ax1.plot(trend_data['Date'], trend_data['Amount'], marker='o', color='tab:blue')
         ax1.set_title("Revenue Trend")
@@ -116,16 +122,16 @@ def generate_pdf(data):
         fig1.savefig("temp_line.png", format='png', bbox_inches='tight')
         plt.close(fig1) 
         
-        # Вставка картинки + ПРИНУДИТЕЛЬНЫЙ отступ вниз на 100 миллиметров
+        # Вставка картинки + жесткий отступ вниз, чтобы избежать наложения
         start_y = pdf.get_y()
         pdf.image("temp_line.png", x=15, y=start_y, w=180)
-        pdf.set_y(start_y + 100) # Курсор 100% ушел вниз, наложения не будет!
+        pdf.set_y(start_y + 90) # Проматываем страницу вниз под график
+        pdf.ln(10)
 
     # --- ГРАФИК 2: КАТЕГОРИИ ---
     if 'Category' in data.columns and 'Amount' in data.columns:
         pie_data = data.groupby('Category')['Amount'].sum()
         
-        # Строгая изоляция графика
         fig2, ax2 = plt.subplots(figsize=(8, 8))
         ax2.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=140)
         ax2.set_title("Revenue by Category")
@@ -133,7 +139,7 @@ def generate_pdf(data):
         plt.close(fig2) 
         
         # Проверяем, хватит ли места на странице для круга
-        if pdf.get_y() > 160: 
+        if pdf.get_y() > 170: 
             pdf.add_page()
             
         start_y2 = pdf.get_y()
@@ -141,17 +147,21 @@ def generate_pdf(data):
 
     return pdf.output()
 
-# === 6. КНОПКА СКАЧИВАНИЯ ===
+# === 7. КНОПКА СКАЧИВАНИЯ ===
 st.markdown("---")
 if 'Amount' in df.columns:
-    st.download_button(
-        label="🚀 Сгенерировать и скачать PDF Отчет",
-        data=bytes(generate_pdf(df)),
-        file_name="Business_Report.pdf",
-        mime="application/pdf"
-    )
+    try:
+        pdf_bytes = generate_pdf(df)
+        st.download_button(
+            label="🚀 Сгенерировать и скачать PDF Отчет",
+            data=bytes(pdf_bytes),
+            file_name="Smart_Business_Report.pdf",
+            mime="application/pdf"
+        )
+    except Exception as e:
+        st.error(f"Произошла ошибка при генерации PDF: {e}")
 else:
-    st.warning("⚠️ Для создания отчета программа должна найти колонку с суммой.")
+    st.warning("⚠️ Для создания отчета программа должна найти колонку с суммой (Amount). Проверь свой файл!")
 
 
 
