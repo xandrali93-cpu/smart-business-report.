@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
-import io
 from fpdf import FPDF
+import os
 
-# Отключаем интерактивный режим Matplotlib (чтобы графики не наслаивались в фоне)
+# Отключаем интерактивный режим (чтобы графики рисовались только в фоне)
 matplotlib.use('Agg')
 
 # === 1. НАСТРОЙКА ИНТЕРФЕЙСА ===
@@ -31,7 +31,6 @@ except Exception as e:
     st.error(f"Ошибка при чтении файла: {e}")
     st.stop()
 
-# Умный поиск (теперь точно найдет "итого к оплате")
 mapping = {}
 for col in df.columns:
     col_lower = str(col).lower().strip()
@@ -47,12 +46,12 @@ df = df.rename(columns=mapping)
 if 'Date' in df.columns:
     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
 
-# === 4. ОТОБРАЖЕНИЕ ДАННЫХ (ПРЕВЬЮ ВЕРНУЛОСЬ!) ===
+# === 4. ОТОБРАЖЕНИЕ ДАННЫХ ===
 st.success("✅ Данные успешно загружены и распознаны!")
 st.write("Вот как программа увидела твой файл (первые 5 строк):")
 st.dataframe(df.head())
 
-# === 5. ГЕНЕРАТОР PDF (С ТВОИМ ТЕКСТОМ И РАЗДЕЛЕННЫМИ ГРАФИКАМИ) ===
+# === 5. ГЕНЕРАТОР PDF (С ЖЕЛЕЗНЫМ ОТСТУПОМ) ===
 def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
@@ -73,7 +72,7 @@ def generate_pdf(data):
     pdf.cell(0, 10, f"Общая выручка (Total Revenue): {total_amount:,.2f} ₸", ln=True)
     pdf.ln(10)
 
-    # --- УМНЫЙ ТЕКСТОВЫЙ АНАЛИЗ (ТВОЙ БЛОК ВЕРНУЛСЯ) ---
+    # --- УМНЫЙ ТЕКСТОВЫЙ АНАЛИЗ ---
     if 'Category' in data.columns and 'Amount' in data.columns:
         pdf.set_font("DejaVu", "", 12)
         pdf.cell(0, 10, "AI Инсайт по продажам (Sales Insight):", ln=True)
@@ -84,7 +83,7 @@ def generate_pdf(data):
         top_percentage = (top_amount / total_amount) * 100 if total_amount > 0 else 0
 
         insight_ru = (
-            f"🇷🇺 Анализ показывает, что «{top_category}» — главный драйвер продаж. "
+            f"Анализ показывает, что «{top_category}» — главный драйвер продаж. "
             f"Этот товар принес {top_amount:,.2f} ₸ ({top_percentage:.1f}% от всей выручки). "
         )
         if top_percentage > 50:
@@ -93,7 +92,7 @@ def generate_pdf(data):
             insight_ru += "Отличная работа: Продажи хорошо сбалансированы. Продолжай в том же духе."
 
         insight_en = (
-            f"🇬🇧 Analysis shows that '{top_category}' is your main sales driver, "
+            f"Analysis shows that '{top_category}' is your main sales driver, "
             f"generating {top_amount:,.2f} ₸ ({top_percentage:.1f}% of total revenue). "
         )
         if top_percentage > 50:
@@ -103,36 +102,42 @@ def generate_pdf(data):
 
         final_insight = insight_ru + "\n\n" + insight_en
         pdf.multi_cell(0, 7, final_insight)
-        pdf.ln(10)
+        pdf.ln(10) 
 
     # --- ГРАФИК 1: ТРЕНДЫ ---
     if 'Date' in data.columns and 'Amount' in data.columns:
         trend_data = data.groupby('Date')['Amount'].sum().reset_index()
         
-        plt.figure(figsize=(10, 5))
-        plt.plot(trend_data['Date'], trend_data['Amount'], marker='o', color='tab:blue')
-        plt.title("Revenue Trend")
-        plt.grid(True)
-        plt.savefig("temp_line.png", format='png', bbox_inches='tight')
-        plt.close('all') # ЖЕСТКАЯ ОЧИСТКА ПАМЯТИ
+        # Строгая изоляция графика
+        fig1, ax1 = plt.subplots(figsize=(10, 5))
+        ax1.plot(trend_data['Date'], trend_data['Amount'], marker='o', color='tab:blue')
+        ax1.set_title("Revenue Trend")
+        ax1.grid(True)
+        fig1.savefig("temp_line.png", format='png', bbox_inches='tight')
+        plt.close(fig1) 
         
-        pdf.image("temp_line.png", x=10, y=pdf.get_y(), w=180)
-        pdf.ln(10)
+        # Вставка картинки + ПРИНУДИТЕЛЬНЫЙ отступ вниз на 100 миллиметров
+        start_y = pdf.get_y()
+        pdf.image("temp_line.png", x=15, y=start_y, w=180)
+        pdf.set_y(start_y + 100) # Курсор 100% ушел вниз, наложения не будет!
 
     # --- ГРАФИК 2: КАТЕГОРИИ ---
     if 'Category' in data.columns and 'Amount' in data.columns:
         pie_data = data.groupby('Category')['Amount'].sum()
         
-        plt.figure(figsize=(8, 8))
-        plt.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=140)
-        plt.title("Revenue by Category")
-        plt.savefig("temp_pie.png", format='png', bbox_inches='tight')
-        plt.close('all') # ЖЕСТКАЯ ОЧИСТКА ПАМЯТИ
+        # Строгая изоляция графика
+        fig2, ax2 = plt.subplots(figsize=(8, 8))
+        ax2.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=140)
+        ax2.set_title("Revenue by Category")
+        fig2.savefig("temp_pie.png", format='png', bbox_inches='tight')
+        plt.close(fig2) 
         
-        if pdf.get_y() > 180:
+        # Проверяем, хватит ли места на странице для круга
+        if pdf.get_y() > 160: 
             pdf.add_page()
             
-        pdf.image("temp_pie.png", x=10, y=pdf.get_y(), w=150)
+        start_y2 = pdf.get_y()
+        pdf.image("temp_pie.png", x=35, y=start_y2, w=140)
 
     return pdf.output()
 
@@ -146,7 +151,7 @@ if 'Amount' in df.columns:
         mime="application/pdf"
     )
 else:
-    st.warning("⚠️ Для создания отчета программа должна найти колонку с суммой. Проверь свой файл!")
+    st.warning("⚠️ Для создания отчета программа должна найти колонку с суммой.")
 
 
 
