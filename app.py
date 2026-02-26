@@ -31,24 +31,25 @@ except Exception as e:
     st.error(f"Ошибка при чтении файла: {e}")
     st.stop()
 
-# Smart Column Mapping
+
+# Обновленный Smart Column Mapping
 mapping = {}
 for col in df.columns:
-    col_lower = str(col).lower()
-    if any(kw in col_lower for kw in ['сумма', 'цена', 'total', 'amount']):
+    col_lower = str(col).lower().strip() # Убираем лишние пробелы
+    
+    # Ищем деньги (Amount)
+    if any(kw in col_lower for kw in ['сумма', 'цена', 'итого', 'total', 'amount', 'выручка', 'оплате']):
         mapping[col] = 'Amount'
-    elif any(kw in col_lower for kw in ['дата', 'date', 'время']):
+        
+    # Ищем даты (Date)
+    elif any(kw in col_lower for kw in ['дата', 'date', 'время', 'период', 'день']):
         mapping[col] = 'Date'
-    elif any(kw in col_lower for kw in ['категория', 'товар', 'item', 'category']):
+        
+    # Ищем категории/товары (Category)
+    elif any(kw in col_lower for kw in ['категория', 'товар', 'item', 'название', 'номенклатура']):
         mapping[col] = 'Category'
 
 df = df.rename(columns=mapping)
-
-if 'Date' in df.columns:
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-
-st.success("✅ Данные загружены!")
-st.dataframe(df.head())
 
 # === 4. ГЕНЕРАТОР PDF ===
 def generate_pdf(data):
@@ -110,6 +111,7 @@ if 'Amount' in df.columns:
     )
 else:
     st.warning("⚠️ В файле должна быть колонка с суммой (Amount).")
+
 
 
 
