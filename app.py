@@ -20,10 +20,18 @@ if not uploaded_file:
     st.info("👋 Привет! Загрузи свой отчет по продажам (Excel или CSV), и я мгновенно сделаю PDF-аналитику.")
     st.stop()
 
+
 # === 3. ЧТЕНИЕ ФАЙЛА ===
 try:
     if uploaded_file.name.endswith('.csv'):
-        df = pd.read_csv(uploaded_file)
+        try:
+            # Попытка 1: Читаем как стандартный CSV
+            df = pd.read_csv(uploaded_file)
+        except Exception:
+            # Попытка 2: Если запятые в тексте сломали структуру, 
+            # возвращаемся в начало файла и применяем "спасательные" настройки
+            uploaded_file.seek(0)
+            df = pd.read_csv(uploaded_file, sep=';', on_bad_lines='skip', engine='python')
     else:
         df = pd.read_excel(uploaded_file)
 except Exception as e:
@@ -162,6 +170,7 @@ if 'Amount' in df.columns:
         st.error(f"Произошла ошибка при генерации PDF: {e}")
 else:
     st.warning("⚠️ Для создания отчета программа должна найти колонку с суммой (Amount). Проверь свой файл!")
+
 
 
 
